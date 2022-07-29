@@ -11,6 +11,11 @@ print('OPENING SCREENSHOT')
 scr = pyautogui.screenshot()
 #scr = Image.open('screenshot.png')
 
+MW, MH = pyautogui.size()
+DW, DH = scr.size
+MOUSE_SCALE = MH / DH
+#print("SCALE", MOUSE_SCALE)
+
 print('FINDING HEXAGON MASK')
 mat = np.array(scr)[..., :-1]
 red, green, blue = mat.T
@@ -27,12 +32,14 @@ play_area = ndimage.find_objects(tmp_mask)[0]
 #plt.imshow(mask)
 #plt.show()
 
-X_OFFSET = play_area[1].start
-Y_OFFSET = play_area[0].start
-
 mat = mat[play_area]
 mask = mask[play_area]
 H, W = mask.shape
+
+X_OFFSET = play_area[1].start
+Y_OFFSET = play_area[0].start
+print(X_OFFSET, Y_OFFSET)
+
 
 print('DETECTING PUZZLE SIZE')
 _, N = ndimage.label(mask[0]) # count the number of tips on the top row

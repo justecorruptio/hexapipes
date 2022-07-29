@@ -1,3 +1,4 @@
+import time
 import math
 import AppKit
 import pyautogui
@@ -95,9 +96,13 @@ while True:
                 1/0
             elif num_poss == 1:
                 solved[y, x] = True
+                dx, dy = hex_offset(x, y)
+                pyautogui.moveTo((X_OFFSET + dx + HEX_W2) * MOUSE_SCALE, (Y_OFFSET + dy + HEX_H2) * MOUSE_SCALE, .01)
                 for i in range(rots):
                     h = tuple(hexes[y, x])
                     hexes[y, x] = h[-1:] + h[:-1]
+                    time.sleep(.01)
+                    pyautogui.click()
                 print("SOLVE", y, x, rots)
             else:
                 print("NPOSS", y, x, num_poss)
