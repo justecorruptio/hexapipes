@@ -46,6 +46,36 @@ def correct(hexes, x, y):
             return False
     return True
 
+
+def make_cluster(hexes, solved, x, y, seen):
+    if (x, y) in seen:
+        return
+
+    seen.add((x, y))
+
+    m = hexes[y, x]
+    s = y % 2
+    dirs = [(-1, -1 + s), (-1, s), (0, 1), (1, s), (1, -1 + s), (0, -1)]
+    for u, (dy, dx) in enumerate(dirs):
+        v = (u + 3) % 6
+        if 0 <= y + dy < N and 0 <= x + dx < N:
+            if solved[y + dy, x + dx] and hexes[y + dy, x + dx][v] and m[u]:
+                make_cluster(hexes, solved, x + dx, y + dy, seen)
+
+
+def is_loop(hexes, solved, cluster, x, y):
+    # the case where i'm trying to connect to a unsolved that's linked to solved
+    m = hexes[y, x]
+    s = y % 2
+    dirs = [(-1, -1 + s), (-1, s), (0, 1), (1, s), (1, -1 + s), (0, -1)]
+    for u, (dy, dx) in enumerate(dirs):
+        v = (u + 3) % 6
+        if 0 <= y + dy < N and 0 <= x + dx < N:
+            if solved[y + dy, x + dx] and hexes[y + dy, x + dx][v] and (x + dx, y + dy) in cluster:
+                return True
+    return False
+
+
 def possible(hexes, solved, x, y):
     m = hexes[y, x]
     #print("    ", m)
@@ -61,7 +91,13 @@ def possible(hexes, solved, x, y):
             if solved[y + dy, x + dx]:
                 other = [-1, 1][int(hexes[y + dy, x + dx][v])]
             else:
-                other = 0
+                cluster = set()
+                make_cluster(hexes, solved, x, y, cluster)
+                print(m, cluster)
+                if is_loop(hexes, solved, cluster, x + dx, y + dy):
+                    other = -1
+                else:
+                    other = 0
         else: # outside
             other = -1
         #print("    ", u, other, m[u])
