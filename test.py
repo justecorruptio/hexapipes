@@ -88,7 +88,10 @@ def possible(hexes, solved, x, y):
     for u, (dy, dx) in enumerate(dirs):
         v = (u + 3) % 6
         if 0 <= y + dy < N and 0 <= x + dx < N:
-            if solved[y + dy, x + dx]:
+            if m[u] and sum(m) == 1 and sum(hexes[y + dy, x + dx]) == 1:
+                # can't link to another singleton
+                return False
+            elif solved[y + dy, x + dx]:
                 other = [-1, 1][int(hexes[y + dy, x + dx][v])]
             else:
                 cluster = set()
