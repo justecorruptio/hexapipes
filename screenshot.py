@@ -8,8 +8,8 @@ from scipy import ndimage
 import matplotlib.pyplot as plt
 
 print('OPENING SCREENSHOT')
-#scr = pyautogui.screenshot()
-scr = Image.open('screenshot.png')
+scr = pyautogui.screenshot()
+#scr = Image.open('screenshot.png')
 
 print('FINDING HEXAGON MASK')
 mat = np.array(scr)[..., :-1]

@@ -12,9 +12,6 @@ import os
 
 from screenshot import *
 
-x = np.array([True, False, False, True, True, False])
-#x = np.array([True, True, True, True, True, False])
-
 def as_braille(h):
     return chr(0x2800 + (h[0] << 0) + (h[5] << 1) + (h[4] << 2) + (h[1] << 3) + (h[2] << 4) + (h[3] << 5))
 
@@ -30,3 +27,77 @@ def print_hexes(hexes):
     print(output)
 
 print_hexes(hexes)
+
+solved = np.zeros((N, N), dtype=bool)
+
+def correct(hexes, x, y):
+    m = hexes[y, x]
+
+    s = y % 2
+    dirs = [(-1, -1 + s), (-1, s), (0, 1), (1, s), (1, -1 + s), (0, -1)]
+
+    for u, (dy, dx) in enumerate(dirs):
+        v = (u + 3) % 6
+        other = False
+        if 0 <= y + dy < N and 0 <= x + dx < N:
+            other = hexes[y + dy, x + dx][v]
+        if other != m[u]:
+            return False
+    return True
+
+def possible(hexes, solved, x, y):
+    m = hexes[y, x]
+    #print("    ", m)
+
+    s = y % 2
+    dirs = [(-1, -1 + s), (-1, s), (0, 1), (1, s), (1, -1 + s), (0, -1)]
+
+    # -1 = sure_not, 0 = maybe, 1 = sure_yes
+
+    for u, (dy, dx) in enumerate(dirs):
+        v = (u + 3) % 6
+        if 0 <= y + dy < N and 0 <= x + dx < N:
+            if solved[y + dy, x + dx]:
+                other = [-1, 1][int(hexes[y + dy, x + dx][v])]
+            else:
+                other = 0
+        else: # outside
+            other = -1
+        #print("    ", u, other, m[u])
+        if (other == -1 and m[u]) or (other == 1 and not m[u]):
+            return False
+    return True
+
+
+while True:
+    for y in range(N):
+        for x in range(N):
+            if solved[y, x]:
+                continue
+
+            start = tuple(hexes[y, x])
+            rots = 0
+            num_poss = 0
+            for i in range(6):
+
+                poss = possible(hexes, solved, x, y)
+                if poss:
+                    rots = i
+                    num_poss += 1
+                h = tuple(hexes[y, x])
+                hexes[y, x] = h[-1:] + h[:-1]
+
+                if tuple(hexes[y, x]) == start:
+                    break # stop when symmetry is found
+
+            if num_poss == 0:
+                print("ERROR", y, x)
+                1/0
+            elif num_poss == 1:
+                solved[y, x] = True
+                for i in range(rots):
+                    h = tuple(hexes[y, x])
+                    hexes[y, x] = h[-1:] + h[:-1]
+                print("SOLVE", y, x, rots)
+            else:
+                print("NPOSS", y, x, num_poss)
