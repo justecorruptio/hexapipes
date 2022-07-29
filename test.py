@@ -30,6 +30,7 @@ def print_hexes(hexes):
 print_hexes(hexes)
 
 solved = np.zeros((N, N), dtype=bool)
+edges = np.zeros((N, N, 6), dtype=int)
 
 def correct(hexes, x, y):
     m = hexes[y, x]
@@ -76,7 +77,7 @@ def is_loop(hexes, solved, cluster, x, y):
     return False
 
 
-def possible(hexes, solved, x, y):
+def possible(hexes, solved, edges, x, y):
     m = hexes[y, x]
     #print("    ", m)
 
@@ -90,23 +91,37 @@ def possible(hexes, solved, x, y):
         if 0 <= y + dy < N and 0 <= x + dx < N:
             if m[u] and sum(m) == 1 and sum(hexes[y + dy, x + dx]) == 1:
                 # can't link to another singleton
+                #print("    no cuz", "singleton")
                 return False
-            elif solved[y + dy, x + dx]:
-                other = [-1, 1][int(hexes[y + dy, x + dx][v])]
-            else:
+
+            other = edges[y + dy, x + dx][v]
+            if other == 0:
                 cluster = set()
                 make_cluster(hexes, solved, x, y, cluster)
-                print(m, cluster)
+                #print(m, cluster)
                 if is_loop(hexes, solved, cluster, x + dx, y + dy):
                     other = -1
-                else:
-                    other = 0
         else: # outside
             other = -1
         #print("    ", u, other, m[u])
         if (other == -1 and m[u]) or (other == 1 and not m[u]):
+            #print("    no cuz", other, m[u])
             return False
+    #print("    ok")
     return True
+
+
+def to_solved_edges(h):
+    return np.array([-1, 1])[h.astype(int)]
+
+def update_solved_edges(edges, y, x, poss_rots):
+    res_table = np.array([-1] + ([0] * (len(poss_rots) - 1)) + [1])
+    poss_rots = np.vstack(poss_rots).astype(int)
+
+    merged = res_table[poss_rots.sum(axis=0, dtype=int)]
+
+    #print("MERGE", y, x, merged)
+    edges[y, x] = merged
 
 
 while True:
@@ -118,17 +133,22 @@ while True:
             start = tuple(hexes[y, x])
             rots = 0
             num_poss = 0
+            poss_rots = []
             for i in range(6):
 
-                poss = possible(hexes, solved, x, y)
+                poss = possible(hexes, solved, edges, x, y)
+                h = tuple(hexes[y, x])
                 if poss:
                     rots = i
                     num_poss += 1
-                h = tuple(hexes[y, x])
+                    poss_rots.append(h)
+
                 hexes[y, x] = h[-1:] + h[:-1]
 
                 if tuple(hexes[y, x]) == start:
                     break # stop when symmetry is found
+
+            update_solved_edges(edges, y, x, poss_rots)
 
             if num_poss == 0:
                 print("ERROR", y, x)
@@ -142,6 +162,8 @@ while True:
                     hexes[y, x] = h[-1:] + h[:-1]
                     time.sleep(.01)
                     pyautogui.click()
+                #edges[y, x] = to_solved_edges(hexes[y, x])
+                #print("EDGES", y, x, edges[y, x])
                 print("SOLVE", y, x, rots)
             else:
                 print("NPOSS", y, x, num_poss)
