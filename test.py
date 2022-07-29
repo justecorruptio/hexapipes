@@ -16,7 +16,7 @@ from screenshot import *
 def as_braille(h):
     return chr(0x2800 + (h[0] << 0) + (h[5] << 1) + (h[4] << 2) + (h[1] << 3) + (h[2] << 4) + (h[3] << 5))
 
-def print_hexes(hexes):
+def print_hexes(hexes, solved):
     output = ''
     for y in range(N):
         if y % 2 == 1:
@@ -27,7 +27,7 @@ def print_hexes(hexes):
 
     print(output)
 
-print_hexes(hexes)
+#print_hexes(hexes)
 
 solved = np.zeros((N, N), dtype=bool)
 edges = np.zeros((N, N, 6), dtype=int)
@@ -123,6 +123,9 @@ def update_solved_edges(edges, y, x, poss_rots):
     #print("MERGE", y, x, merged)
     edges[y, x] = merged
 
+# click into window
+pyautogui.moveTo(X_OFFSET, Y_OFFSET)
+pyautogui.click()
 
 while True:
     for y in range(N):
@@ -156,14 +159,19 @@ while True:
             elif num_poss == 1:
                 solved[y, x] = True
                 dx, dy = hex_offset(x, y)
-                pyautogui.moveTo((X_OFFSET + dx + HEX_W2) * MOUSE_SCALE, (Y_OFFSET + dy + HEX_H2) * MOUSE_SCALE, .01)
+                pyautogui.moveTo((X_OFFSET + dx + HEX_W2) * MOUSE_SCALE, (Y_OFFSET + dy + HEX_H2) * MOUSE_SCALE, 0)
                 for i in range(rots):
                     h = tuple(hexes[y, x])
                     hexes[y, x] = h[-1:] + h[:-1]
-                    time.sleep(.01)
+                    #time.sleep(.01)
                     pyautogui.click()
                 #edges[y, x] = to_solved_edges(hexes[y, x])
                 #print("EDGES", y, x, edges[y, x])
                 print("SOLVE", y, x, rots)
-            else:
-                print("NPOSS", y, x, num_poss)
+            #else:
+            #    print("NPOSS", y, x, num_poss)
+
+    print("NSOLV", np.sum(solved))
+    if np.sum(solved) == N * N:
+        break
+print("DONE!!!!!!")

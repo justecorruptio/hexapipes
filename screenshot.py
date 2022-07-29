@@ -19,7 +19,10 @@ MOUSE_SCALE = MH / DH
 print('FINDING HEXAGON MASK')
 mat = np.array(scr)[..., :-1]
 red, green, blue = mat.T
-mask = (red == 0xdd) & (green == 0xdd) & (blue == 0xdd)
+mask = (
+    ((red == 0xdd) & (green == 0xdd) & (blue == 0xdd)) |
+    ((red > 0xf0) & (green <= 0xbf) & (green > 0xb8) & (blue <= 0xbf) & (blue > 0xb8))
+)
 mask = ndimage.binary_dilation(mask, iterations=3)
 mask = ndimage.binary_erosion(mask, iterations=1)
 mask = mask.T
@@ -68,7 +71,6 @@ for y in range(N):
 hexes = np.invert(hexes)
 #print(hexes)
 
-
 '''
 mat[mask] = (0xFF, 0x00, 0x00)
 im = Image.fromarray(mat)
@@ -79,4 +81,5 @@ for x in range(N):
         p = point_offsets + hex_offset(x, y)
         draw.point(list(map(tuple, p)), '#000000')
 im.show()
+1/0
 '''
